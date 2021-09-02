@@ -1,0 +1,35 @@
+repos:
+  - repo: git://github.com/dnephin/pre-commit-golang
+    rev: master
+    hooks:
+      - id: go-fmt
+      - id: go-vet
+      - id: go-imports
+      - id: go-build
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.5.0
+    hooks:
+    -   id: check-byte-order-marker
+    -   id: check-case-conflict
+    -   id: check-executables-have-shebangs
+    -   id: check-merge-conflict
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: build-main
+        name: build-main
+        entry: go build -o dist/inventory
+        args: [./main.go]
+        language: system
+        types: [go]
+        pass_filenames: false
+      - id: build-excel
+        name: build-excel
+        entry: go build -o dist/excel
+        args: [./excel/main.go]
+        language: system
+        types: [go]
+        pass_filenames: false
