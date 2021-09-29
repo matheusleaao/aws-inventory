@@ -9,7 +9,7 @@ do
             regions=${regions//,/ }
             ;;
         -o=*|--output=*) output=${1/--output=/}
-            output=${1/-o=/}
+            output=${output/-o=/}
             ;;
         -*|--*) echo "Opção $1 desconhecida"
             ;;
@@ -21,7 +21,7 @@ done
 
 if [ -z "$regions" ]; then
     echo "Utilização: $0 --regions=us-east-1,sa-east-1"
-    exit 1
+    return 1
 fi
 
 echo "Regiões: $regions"
@@ -30,23 +30,20 @@ echo ""
 
 echo -n "" > $output
 
-QUERY="LoadBalancerDescriptions[*].[LoadBalancerName,DNSName,VPCId,CreatedTime,Scheme]"
-FIELDS="Nome\tDNS\tVPC\tData criação\tTipo"
-
 for region in $regions; do
-    echo "Buscando recursos em $region"
+    echo "Buscando Volumes em $region"
 
-    instances=$(aws elb describe-load-balancers --region=$region --output text --query "$QUERY")
+    instances=$(aws ec2 describe-volumes --region=$region --filters "Name=status,Values=available" --query 'Volumes[*].[VolumeId,Size]' --output text)
 
     if [ $? == 0 ] && [[ ! -z $instances ]]; then
         countInstances=$(echo -n "$instances" | wc -l)
-        echo "    $countInstances recursos encontrados"
+        echo "    $countInstances volumes encontrados"
 
         # @TODO: fix \t\t\t\t\...
-        echo -e "$region\t\t\t\t\n" >> "$output"
-        echo -e "$FIELDS" >> "$output"
+        echo -e "$region\t\t\t\t\t\t\t\n" >> "$output"
+        echo -e "tVolumeID\tSize" >> "$output"
         echo -e "$instances\n" >> "$output"
     else
-        echo "    Nenhuma instância encontrada!"
+        echo "    Nenhum volume encontrado!"
     fi
 done
